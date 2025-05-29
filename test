@@ -1,0 +1,79 @@
+bolfi-scraper/
+├── scraper.py
+import requests
+from bs4 import BeautifulSoup
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+def scrape_bolfi():
+    url = "https://www.bolfi.es/categoria-producto/organizacion/"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(url, headers=headers)
+    soup = BeautifulSoup(r.content, "html.parser")
+
+    productos = []
+    for item in soup.select("li.product"):
+        nombre = item.select_one("h2.woocommerce-loop-product__title")
+        precio = item.select_one("span.woocommerce-Price-amount")
+        link = item.select_one("a")["href"]
+
+        productos.append([
+            nombre.text.strip() if nombre else "N/A",
+            precio.text.strip() if precio else "N/A",
+            link
+        ])
+    return productos
+
+def subir_a_sheets(productos):
+    scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+    client = gspread.authorize(creds)
+
+    sheet = client.open_by_key("https://docs.google.com/spreadsheets/d/1Vz6Njco-NyhJGFbfojUEHrtzFzt-IpBbnNo3rb1SPHA/edit?pli=1&gid=0#gid=0").sheet1
+    sheet.clear()
+    sheet.append_row(["Nombre", "Precio", "Link"])
+    for p in productos:
+        sheet.append_row(p)
+
+if __name__ == "__main__":
+    datos = scrape_bolfi()
+    subir_a_sheets(datos)
+
+
+├── requirements.txt
+name: Scrap Bolfi y subir a Google Sheets
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # Cada día a las 7:00 UTC
+  workflow_dispatch:
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Crear archivo credentials.json
+        run: echo "$CREDENTIALS_JSON" > credentials.json
+        env:
+          CREDENTIALS_JSON: ${{ secrets.CREDENTIALS_JSON }}
+
+      - name: Ejecutar scraper
+        run: python scraper.py
+
+├── .github/
+│   └── workflows/
+│       └── scraper.yml
