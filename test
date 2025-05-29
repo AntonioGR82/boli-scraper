@@ -29,8 +29,9 @@ def subir_a_sheets(productos):
     creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
     client = gspread.authorize(creds)
 
-    sheet = client.open_by_key("https://docs.google.com/spreadsheets/d/1Vz6Njco-NyhJGFbfojUEHrtzFzt-IpBbnNo3rb1SPHA/edit?pli=1&gid=0#gid=0").sheet1
-    sheet.clear()
+    sheet = client.open_by_key("1Vz6Njco-NyhJGFbfojUEHrtzFzt-IpBbnNo3rb1SPHA").sheet1
+sheet.clear()
+
     sheet.append_row(["Nombre", "Precio", "Link"])
     for p in productos:
         sheet.append_row(p)
