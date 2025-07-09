@@ -1,0 +1,20 @@
+{
+  "name": "formbuilder-unlimited",
+  "version": "1.0.0",
+  "description": "A Typeform-like form builder with unlimited records",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "client:dev": "cd client && npm run dev",
+    "server:dev": "cd server && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "setup": "npm install && cd client && npm install && cd ../server && npm install"
+  },
+  "keywords": ["form", "builder", "typeform", "unlimited", "records"],
+  "author": "Form Builder",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
